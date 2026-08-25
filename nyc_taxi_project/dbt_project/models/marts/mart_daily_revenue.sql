@@ -10,4 +10,4 @@ select
 from {{ ref('fct_trips') }}
 where is_valid_trip = true
 group by pickup_date
-order by pickup_date
+order by pickup_date-- test CI/CD
