@@ -26,10 +26,10 @@ jobs:
       - name: Installation de dbt
         run: pip install dbt-snowflake==1.7.0
 
-      - name: Ecriture de la cle privee RSA depuis les secrets
+      - name: Ecriture de la cle privee RSA depuis les secrets (decodage base64)
         run: |
           mkdir -p /tmp/snowflake_keys
-          echo "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" > /tmp/snowflake_keys/rsa_key.p8
+          echo "${{ secrets.SNOWFLAKE_PRIVATE_KEY_B64 }}" | base64 -d > /tmp/snowflake_keys/rsa_key.p8
           chmod 600 /tmp/snowflake_keys/rsa_key.p8
 
       - name: dbt deps
