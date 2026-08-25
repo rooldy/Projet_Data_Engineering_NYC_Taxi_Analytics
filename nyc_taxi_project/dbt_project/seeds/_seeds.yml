@@ -1,0 +1,38 @@
+version: 2
+
+seeds:
+  - name: seed_payment_type
+    description: "Referentiel officiel NYC TLC des types de paiement. Statique, gere en seed dbt plutot qu'en pipeline d'ingestion. Expose aux marts via le modele dim_payment_type."
+    columns:
+      - name: payment_type_id
+        description: "Identifiant du type de paiement"
+        tests:
+          - unique
+          - not_null
+      - name: payment_label
+        tests:
+          - not_null
+
+  - name: seed_vendor
+    description: "Referentiel officiel NYC TLC des fournisseurs de systeme taxi. Statique, gere en seed dbt. Expose aux marts via le modele dim_vendor."
+    columns:
+      - name: vendor_id
+        description: "Identifiant du vendeur"
+        tests:
+          - unique
+          - not_null
+      - name: vendor_name
+        tests:
+          - not_null
+
+  - name: seed_rate_code
+    description: "Referentiel officiel NYC TLC des types de tarif. Statique, gere en seed dbt. Expose aux marts via le modele dim_rate_code."
+    columns:
+      - name: rate_code_id
+        description: "Identifiant du type de tarif"
+        tests:
+          - unique
+          - not_null
+      - name: rate_code_label
+        tests:
+          - not_null

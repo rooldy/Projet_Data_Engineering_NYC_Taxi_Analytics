@@ -1,0 +1,33 @@
+# Environnement
+.env
+*.env
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+.venv/
+
+# dbt
+dbt_project/target/
+dbt_project/dbt_packages/
+dbt_project/logs/
+
+# Airflow
+logs/
+*.log
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Cles privees RSA (authentification Snowflake) - JAMAIS versionnees
+keys/
+*.p8
+*.pem
+
+# Dependance ajoutee pour la lecture des cles

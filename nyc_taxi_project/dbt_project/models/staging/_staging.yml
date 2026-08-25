@@ -1,0 +1,56 @@
+version: 2
+
+sources:
+  - name: raw
+    database: "{{ target.database }}"
+    schema: RAW
+    tables:
+      - name: raw_taxi_trips
+        description: "Courses de taxi brutes, chargees mensuellement depuis les fichiers Parquet NYC TLC. Schema complet incluant vendor, tarif, decomposition des surcharges. trip_id est AUTOINCREMENT, genere par Snowflake a l'insertion."
+      - name: raw_weather
+        description: "Donnees meteo brutes, ingerees via l'API OpenWeather. Timestamps normalises en UTC."
+      - name: raw_taxi_zones
+        description: "Referentiel des zones de taxi (borough, zone, service_zone). Alimente le snapshot zones_snapshot pour historisation SCD2."
+
+models:
+  - name: stg_taxi_trips
+    description: >
+      Courses de taxi exposees quasi-brutes. Aucune ligne n'est filtree ici : la colonne
+      is_valid_trip qualifie chaque course sans en supprimer, pour garder une tracabilite
+      complete depuis la source. Le filtrage eventuel se fait a la consommation (marts).
+    columns:
+      - name: trip_id
+        description: "Identifiant technique unique de la course, genere par AUTOINCREMENT cote Snowflake"
+        tests:
+          - unique
+          - not_null
+      - name: pickup_datetime
+        description: "Date et heure de depart de la course (heure locale New York, non convertie en UTC)"
+        tests:
+          - not_null
+      - name: fare_amount
+        description: "Montant de base de la course en dollars"
+        tests:
+          - not_null
+      - name: vendor_id
+        description: "Identifiant du fournisseur du systeme taxi, source brute (peut etre NULL ou hors referentiel)"
+      - name: rate_code_id
+        description: "Identifiant du type de tarif, source brute (peut etre NULL ou hors referentiel)"
+      - name: is_valid_trip
+        description: "True si fare_amount, trip_distance, passenger_count sont positifs et si dropoff > pickup"
+        tests:
+          - not_null
+
+  - name: stg_taxi_zones
+    description: "Zones de taxi nettoyees depuis la table RAW."
+    columns:
+      - name: location_id
+        tests:
+          - not_null
+
+  - name: stg_weather
+    description: "Donnees meteo nettoyees, timestamps en UTC."
+    columns:
+      - name: weather_timestamp
+        tests:
+          - not_null

@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: dim_payment_type
+    description: "Dimension des types de paiement, exposee depuis le seed seed_payment_type."
+    columns:
+      - name: payment_type_id
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_vendor
+    description: "Dimension des fournisseurs de systeme taxi, exposee depuis le seed seed_vendor."
+    columns:
+      - name: vendor_id
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_rate_code
+    description: "Dimension des types de tarif, exposee depuis le seed seed_rate_code."
+    columns:
+      - name: rate_code_id
+        tests:
+          - unique
+          - not_null

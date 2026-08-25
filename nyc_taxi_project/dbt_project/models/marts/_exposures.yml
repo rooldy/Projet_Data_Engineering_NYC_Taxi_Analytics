@@ -1,0 +1,72 @@
+version: 2
+
+exposures:
+  - name: metabase_daily_revenue
+    label: "Dashboard Metabase - Revenu Quotidien"
+    type: dashboard
+    maturity: medium
+    depends_on:
+      - ref('mart_daily_revenue')
+    owner:
+      name: Rooldy Alphonse
+      email: rooldy@example.com
+
+  - name: metabase_zone_performance
+    label: "Dashboard Metabase - Performance par Zone"
+    type: dashboard
+    maturity: medium
+    depends_on:
+      - ref('mart_zone_performance')
+    owner:
+      name: Rooldy Alphonse
+      email: rooldy@example.com
+
+  - name: metabase_weather_impact
+    label: "Dashboard Metabase - Impact Meteo"
+    type: dashboard
+    maturity: medium
+    depends_on:
+      - ref('mart_weather_impact')
+    owner:
+      name: Rooldy Alphonse
+      email: rooldy@example.com
+
+  - name: metabase_payment_analysis
+    label: "Dashboard Metabase - Analyse des Paiements"
+    type: dashboard
+    maturity: low
+    depends_on:
+      - ref('mart_payment_analysis')
+    owner:
+      name: Rooldy Alphonse
+      email: rooldy@example.com
+
+  - name: metabase_hourly_patterns
+    label: "Dashboard Metabase - Patterns Horaires"
+    type: dashboard
+    maturity: low
+    depends_on:
+      - ref('mart_hourly_patterns')
+    owner:
+      name: Rooldy Alphonse
+      email: rooldy@example.com
+
+  - name: metabase_trip_routes
+    label: "Dashboard Metabase - Liaisons Origine-Destination"
+    type: dashboard
+    maturity: low
+    depends_on:
+      - ref('mart_trip_routes')
+    owner:
+      name: Rooldy Alphonse
+      email: rooldy@example.com
+
+  - name: metabase_data_quality
+    label: "Dashboard Metabase - Monitoring Qualite des Donnees"
+    type: dashboard
+    maturity: low
+    depends_on:
+      - ref('mart_data_quality_summary')
+    owner:
+      name: Rooldy Alphonse
+      email: rooldy@example.com

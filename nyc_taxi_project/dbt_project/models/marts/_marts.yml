@@ -1,0 +1,175 @@
+version: 2
+
+models:
+  - name: dim_zones
+    description: "Dimension des zones de taxi, exposant la version courante de chaque zone depuis le snapshot SCD2 zones_snapshot."
+    columns:
+      - name: location_id
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_date
+    description: "Dimension calendaire generee via dbt_utils.date_spine. Utilisee par mart_hourly_patterns."
+    columns:
+      - name: date_key
+        tests:
+          - unique
+          - not_null
+
+  - name: fct_trips
+    description: >
+      Table de faits, grain = une course de taxi. trip_id est un identifiant technique
+      natif (AUTOINCREMENT cote Snowflake). Ne contient que des cles etrangeres et des
+      mesures, aucun attribut descriptif (cf. Fiches_Modelisation_NYC_Taxi.md).
+    columns:
+      - name: trip_id
+        description: "Identifiant technique unique de la course"
+        tests:
+          - unique
+          - not_null
+      - name: pickup_date
+        tests:
+          - not_null
+      - name: pickup_location_id
+        tests:
+          - relationships:
+              to: ref('dim_zones')
+              field: location_id
+      - name: dropoff_location_id
+        tests:
+          - relationships:
+              to: ref('dim_zones')
+              field: location_id
+      - name: vendor_id
+        description: "Cle etrangere vers dim_vendor. Jamais NULL grace au COALESCE vers 99 applique en amont."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_vendor')
+              field: vendor_id
+      - name: rate_code_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_rate_code')
+              field: rate_code_id
+      - name: payment_type_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_payment_type')
+              field: payment_type_id
+      - name: fare_amount
+        tests:
+          - not_null
+      - name: total_amount
+        tests:
+          - not_null
+      - name: is_valid_trip
+        description: "Qualifie la course sans la supprimer. Les marts business filtrent explicitement dessus."
+        tests:
+          - not_null
+
+  - name: mart_daily_revenue
+    description: "Agregation quotidienne du revenu et du volume de courses, filtree sur les courses valides uniquement."
+    columns:
+      - name: pickup_date
+        tests:
+          - unique
+          - not_null
+
+  - name: mart_zone_performance
+    description: "Performance par zone de depart (jointure fct_trips + dim_zones), filtree sur les courses valides."
+    columns:
+      - name: pickup_zone
+        tests:
+          - not_null
+
+  - name: mart_weather_impact
+    description: "Croisement du revenu quotidien avec les donnees meteo, filtree sur les courses valides."
+    columns:
+      - name: pickup_date
+        tests:
+          - unique
+          - not_null
+
+  - name: mart_payment_analysis
+    description: >
+      Analyse du revenu et du comportement de pourboire par mode de paiement,
+      fournisseur et type de tarif. Exploite dim_payment_type, dim_vendor et
+      dim_rate_code au-dela de leur simple role de validation referentielle.
+    columns:
+      - name: payment_label
+        tests:
+          - not_null
+      - name: vendor_name
+        tests:
+          - not_null
+      - name: rate_code_label
+        tests:
+          - not_null
+      - name: total_trips
+        tests:
+          - not_null
+
+  - name: mart_hourly_patterns
+    description: >
+      Patterns horaires de la demande (heure de la journee, jour de semaine, weekend).
+      Premier mart a exploiter reellement dim_date.
+    columns:
+      - name: pickup_hour
+        tests:
+          - not_null
+      - name: day_of_week
+        tests:
+          - not_null
+
+  - name: mart_trip_duration_outliers
+    description: >
+      Courses dont la duree est statistiquement anormale (1er/99e percentile).
+      Grain = une ligne par course anormale, pas une agregation.
+    columns:
+      - name: trip_id
+        description: "Reference vers fct_trips.trip_id. Pas de test unique ici : le grain de ce mart est deliberement filtre, une meme course ne peut apparaitre qu'une fois."
+        tests:
+          - not_null
+      - name: outlier_type
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Too Short', 'Too Long']
+
+  - name: mart_trip_routes
+    description: >
+      Analyse des liaisons origine -> destination (grain = une paire de zones).
+      Comble le manque d'analyse des trajets complets, jusqu'ici seule la
+      performance par zone de depart isolee etait disponible.
+    columns:
+      - name: pickup_zone
+        tests:
+          - not_null
+      - name: dropoff_zone
+        tests:
+          - not_null
+      - name: total_trips
+        tests:
+          - not_null
+
+  - name: mart_data_quality_summary
+    description: >
+      Monitoring quotidien du taux de courses invalides et de ses causes,
+      construit depuis stg_taxi_trips (au plus pres de la source). Rend visible
+      en continu ce qui n'etait auparavant decouvrable que par requete manuelle.
+    columns:
+      - name: pickup_date
+        tests:
+          - unique
+          - not_null
+      - name: invalid_rate_pct
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 100
+              inclusive: true
